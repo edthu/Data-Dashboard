@@ -130,3 +130,14 @@
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(iflast shell, None, None)[0m
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(; set ideaPort in Global := 42927 ; idea-shell, None, None)[0m
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(set ideaPort in Global := 42927, None, None)[0m
+[0m[[0m[0minfo[0m] [0m[0mDefining Global / ideaPort[0m
+[0m[[0m[0minfo[0m] [0m[0mThe new value will be used by Compile / compile, Test / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0mDefining [0m
+[0m[[0m[0mdebug[0m] [0m[0m	Global / ideaPort[0m
+[0m[[0m[0mdebug[0m] [0m[0m[0m
+[0m[[0m[0mdebug[0m] [0m[0mThe new value will be used by [0m
+[0m[[0m[0mdebug[0m] [0m[0m	Compile / compile[0m
+[0m[[0m[0mdebug[0m] [0m[0m	Test / compile[0m
+[0m[[0m[0minfo[0m] [0m[0mReapplying settings...[0m
+[0m[[0m[0minfo[0m] [0m[0mset current project to DataDashboard (in build file:/home/eetu/IdeaProjects/DataDashboard/)[0m
+[0m[[0m[0mdebug[0m] [0m[0m> Exec(idea-shell, None, None)[0m
