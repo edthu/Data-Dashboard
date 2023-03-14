@@ -1,4 +1,4 @@
-package test
+package dasboard
 import scala.collection.mutable.Buffer
 
 case class Student(name: String)
@@ -35,4 +35,5 @@ end StudentUnion
 
   // Nyt kun StudentUnion on Iterable, sitä voidaan käyttää for-silmukassa
   for s <- union do println(s)
+  requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
 end example
