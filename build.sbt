@@ -7,4 +7,5 @@ lazy val root = (project in file("."))
     name := "DataDashboard",
     libraryDependencies += "com.lihaoyi" %% "requests" % "0.8.0",
     //libraryDependencies += "org.scala-lang.module" % "scala-swing_3" % "3.0.0"
+    libraryDependencies += "org.scalafx" % "scalafx_3" % "19.0.0-R30"
   )
