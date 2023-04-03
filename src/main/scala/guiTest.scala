@@ -2,11 +2,15 @@ import scalafx.Includes.*
 import scalafx.application.JFXApp3
 import scalafx.geometry.Orientation.Horizontal
 import scalafx.scene.Scene
+import scalafx.scene.chart.{LineChart, NumberAxis, XYChart}
 import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane}
 import scalafx.scene.layout.{AnchorPane, BorderPane, FlowPane, HBox, Pane, StackPane, TilePane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.Font
+import scalafx.Includes.*
+import scalafx.collections.ObservableBuffer
+
 import java.awt.Color
 
 object guiTest extends JFXApp3 {
@@ -36,6 +40,8 @@ object guiTest extends JFXApp3 {
     val loadMenu = new Menu("Save/Load")
     menuBar.getMenus.addAll(windowMenu, loadMenu)
     root.setTop(menuBar)
+    val secondMenuBar = new MenuBar()
+    secondMenuBar.getMenus.addAll(new Menu("jee"), new Menu(" huhuh"))
 
     // button for adding another pane into the view (into the menus)
     // TODO: make it do something
@@ -51,8 +57,9 @@ object guiTest extends JFXApp3 {
     val secondRow = new SplitPane:
       // dividerPositions = 0.5
       orientation = scalafx.geometry.Orientation.Horizontal
+      dividerPositions = 0.5
 
-    secondRow.setDividerPositions(0.6, 0.7, 0.9)
+    secondRow.setDividerPositions(0.6)
     val thirdRow = new SplitPane:
       dividerPositions = 0.5
       orientation = scalafx.geometry.Orientation.Horizontal
@@ -60,7 +67,7 @@ object guiTest extends JFXApp3 {
     val paneInsidePane = new SplitPane:
       orientation = scalafx.geometry.Orientation.Vertical
       dividerPositions = 0.5
-      items.addAll(firstRow, secondRow, thirdRow)
+      items.addAll(firstRow, secondRow)
 
     /*
     paneInsidePane.children += firstRow
@@ -79,7 +86,28 @@ object guiTest extends JFXApp3 {
     val labelThree = new Label  (text = "öhöhö")
     // firstRow.getItems.addAll(coolLabel, labelTwo, labelThree)
 
-    secondRow.getItems.addAll(new HBox(new Label(text = "uhuhuu"), rectangle, new HBox(new Label(text = "jihuu"))))
+
+    // everything needed to create a linechart
+    // TODO: make it stretch over the entire available space
+    val xAxis = NumberAxis("aika", 1, 100, 3)
+    val yAxis = NumberAxis("hinta", 1, 10, 1)
+    val toChartData = (xy: (Double, Double)) => XYChart.Data[Number, Number](xy._1, xy._2)
+
+    val values = Seq((1.0, 1.0), (2.0, 3.0), (7.0, 4.0), (10.0, 5.0), (20.0, 6.0)).map(toChartData(_))
+
+    val dataSeries = new XYChart.Series[Number, Number]:
+      name = "hyvää dataa"
+      data = values
+
+    val chart = new LineChart[Number, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
+      title = "Hieno chart"
+      // change styling with css?
+
+
+
+
+    secondRow.getItems.addAll(new HBox(rectangle), new VBox(secondMenuBar, chart), new HBox(labelThree))
+    secondRow.setDividerPositions(0.6, 0.7)
     // paneInsidePane.children += new Label("jihuu")
     root.setCenter(paneInsidePane)
 
