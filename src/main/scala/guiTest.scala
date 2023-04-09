@@ -3,13 +3,14 @@ import scalafx.application.JFXApp3
 import scalafx.geometry.Orientation.Horizontal
 import scalafx.scene.Scene
 import scalafx.scene.chart.{LineChart, NumberAxis, XYChart}
-import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane}
+import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
 import scalafx.scene.layout.{AnchorPane, BorderPane, FlowPane, HBox, Pane, StackPane, TilePane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
-import scalafx.scene.text.Font
+import scalafx.scene.text.{Font, TextFlow}
 import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
+import scalafx.geometry.Pos.{BaselineCenter, BaselineRight}
 
 import java.awt.Color
 
@@ -32,6 +33,8 @@ object guiTest extends JFXApp3 {
     Create root gui component, add it to a Scene
     and set the current window scene.
     */
+
+    val apiData = requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
 
     val root = new BorderPane()
 
@@ -57,9 +60,9 @@ object guiTest extends JFXApp3 {
     val secondRow = new SplitPane:
       // dividerPositions = 0.5
       orientation = scalafx.geometry.Orientation.Horizontal
-      dividerPositions = 0.5
+      dividerPositions = 0.7
 
-    secondRow.setDividerPositions(0.6)
+    // secondRow.setDividerPositions(0.6)
     val thirdRow = new SplitPane:
       dividerPositions = 0.5
       orientation = scalafx.geometry.Orientation.Horizontal
@@ -82,13 +85,17 @@ object guiTest extends JFXApp3 {
 
     // add stuff to the topWindow as a test.
     val coolLabel = new Label(text = "jui")
-    val labelTwo = new Label(text = "ahaa")
-    val labelThree = new Label  (text = "öhöhö")
+    val labelTwo = new Label:
+      text = "tämän kuuluisi olla keskellä äääääääääääääääääääääääääääääääääää \nja monella rivillä tekstiä ja silleen \nlaitetaan vielä kolmannellekin"
+      alignment = BaselineCenter
+
+    val labelThree = new Label  (text = "apiData.json")
     // firstRow.getItems.addAll(coolLabel, labelTwo, labelThree)
 
 
     // everything needed to create a linechart
     // TODO: make it stretch over the entire available space
+    // and fit the data to the chart
     val xAxis = NumberAxis("aika", 1, 100, 3)
     val yAxis = NumberAxis("hinta", 1, 10, 1)
     val toChartData = (xy: (Double, Double)) => XYChart.Data[Number, Number](xy._1, xy._2)
@@ -99,13 +106,15 @@ object guiTest extends JFXApp3 {
       name = "hyvää dataa"
       data = values
 
+
     val chart = new LineChart[Number, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
       title = "Hieno chart"
       // change styling with css?
 
+    val stackPane = new StackPane()
+    stackPane.getChildren.addAll(labelTwo)
 
-
-
+    firstRow.getItems.addAll(stackPane, new HBox(coolLabel))
     secondRow.getItems.addAll(new HBox(rectangle), new VBox(secondMenuBar, chart), new HBox(labelThree))
     secondRow.setDividerPositions(0.6, 0.7)
     // paneInsidePane.children += new Label("jihuu")
