@@ -2,7 +2,7 @@ import scalafx.Includes.*
 import scalafx.application.JFXApp3
 import scalafx.geometry.Orientation.Horizontal
 import scalafx.scene.Scene
-import scalafx.scene.chart.{LineChart, NumberAxis, XYChart}
+import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis, XYChart}
 import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
 import scalafx.scene.layout.{AnchorPane, BorderPane, FlowPane, HBox, Pane, StackPane, TilePane, VBox}
 import scalafx.scene.paint.Color.*
@@ -96,26 +96,33 @@ object guiTest extends JFXApp3 {
     // everything needed to create a linechart
     // TODO: make it stretch over the entire available space
     // and fit the data to the chart
-    val xAxis = NumberAxis("aika", 1, 100, 3)
-    val yAxis = NumberAxis("hinta", 1, 10, 1)
-    val toChartData = (xy: (Double, Double)) => XYChart.Data[Number, Number](xy._1, xy._2)
+    val xAxis = CategoryAxis("aika") //("aika", 1, 100, 3)
+    val yAxis = NumberAxis("hinta", 80, 5000, 10)
+    val toChartData = (xy: (String, Int)) => XYChart.Data[String, Number](xy._1, xy._2)
 
-    val values = Seq((1.0, 1.0), (2.0, 3.0), (7.0, 4.0), (10.0, 5.0), (20.0, 6.0)).map(toChartData(_))
+    // val values = Seq((1.0, 1.0), (2.0, 3.0), (7.0, 4.0), (10.0, 5.0), (20.0, 6.0)).map(toChartData(_))
+    val request = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1523229288&to=1680995696")
+    val newValues = request.formatData(request.timedata).map(toChartData(_)).toSeq
 
-    val dataSeries = new XYChart.Series[Number, Number]:
+    val dataSeries = new XYChart.Series[String, Number]:
       name = "hyvää dataa"
-      data = values
+      data = newValues
 
 
-    val chart = new LineChart[Number, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
+    val chart = new LineChart[String, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
       title = "Hieno chart"
+      createSymbols = false
       // change styling with css?
 
     val stackPane = new StackPane()
     stackPane.getChildren.addAll(labelTwo)
 
+    // to fill the entire panel with the chart
+    val paneForChart = new StackPane()
+    paneForChart.getChildren.addAll(chart)
+
     firstRow.getItems.addAll(stackPane, new HBox(coolLabel))
-    secondRow.getItems.addAll(new HBox(rectangle), new VBox(secondMenuBar, chart), new HBox(labelThree))
+    secondRow.getItems.addAll(new HBox(rectangle), new VBox(secondMenuBar, paneForChart), new HBox(labelThree))
     secondRow.setDividerPositions(0.6, 0.7)
     // paneInsidePane.children += new Label("jihuu")
     root.setCenter(paneInsidePane)
