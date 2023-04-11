@@ -3,10 +3,12 @@ import java.time.*
 import java.util.Date
 
 // A class for making http-requests and changing the data into a format so that it can be used in the GUI components
-class requestData(api: String):
+class requestData(var api: String):
   // Makes a http request with the given url
   def request = requests.get(api)
 
+  def updateApi(newApi: String) = api = newApi 
+  
   // Changes the contents of the response to a ujson.value object
   val json = ujson.read(request.text())
 
