@@ -10,11 +10,11 @@ class requestData(var api: String):
   def updateApi(newApi: String) = api = newApi 
   
   // Changes the contents of the response to a ujson.value object
-  val json = ujson.read(request.text())
+  def json = ujson.read(request.text())
 
   // Use this only after a request is made for historical data.
   // Converts the ujson.value objects from the api call
-  // https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=[timestamp]]&to=[timestamp]
+  // https://api.coivalngecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=[timestamp]]&to=[timestamp]
   // to doubles.
   // Structure of the JSON returned from request:
   // prices -> Array[(timeStamp, price)],

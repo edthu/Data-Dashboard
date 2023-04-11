@@ -1,20 +1,25 @@
+import com.sun.javafx.scene.EventHandlerProperties
+import javafx.event.EventHandler
 import scalafx.Includes.*
 import scalafx.application.JFXApp3
 import scalafx.geometry.Orientation.Horizontal
 import scalafx.scene.Scene
 import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis, XYChart}
 import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
-import scalafx.scene.layout.{AnchorPane, BorderPane, FlowPane, HBox, Pane, StackPane, TilePane, VBox}
+import scalafx.scene.layout.{BorderPane, HBox, StackPane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.{Font, TextFlow}
 import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
-import scalafx.geometry.Pos.{BaselineCenter, BaselineRight}
+import scalafx.event.ActionEvent
+import scalafx.geometry.Pos.BaselineCenter
+import scalafx.scene.input.MouseEvent
 
 import java.awt.Color
+import scala.language.postfixOps
 
-object guiTest extends JFXApp3 {
+object GuiTest extends JFXApp3 {
   /*val text: String = jsontest.requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum").toString
   val someTextOnTheStage = new Label("tee")
   someTextOnTheStage.textFill = Blue
@@ -48,8 +53,11 @@ object guiTest extends JFXApp3 {
 
     // button for adding another pane into the view (into the menus)
     // TODO: make it do something
-    val newWindow = new MenuItem("item 1")
-    windowMenu.getItems.addAll(newWindow)
+    val newWindow = new MenuItem("päivitä chart")
+    val newRow = new MenuItem(text = "add a row")
+
+
+    windowMenu.getItems.addAll(newWindow, newRow)
 
     // split panes inside the main window. PaneInsidePane is the main one that divides the view into two
     // vertically. The other are the bottom and top ones. Adding views means adding to the first and second rows.
@@ -60,7 +68,7 @@ object guiTest extends JFXApp3 {
     val secondRow = new SplitPane:
       // dividerPositions = 0.5
       orientation = scalafx.geometry.Orientation.Horizontal
-      dividerPositions = 0.7
+      // dividerPositions = 0.7
 
     // secondRow.setDividerPositions(0.6)
     val thirdRow = new SplitPane:
@@ -70,7 +78,7 @@ object guiTest extends JFXApp3 {
     val paneInsidePane = new SplitPane:
       orientation = scalafx.geometry.Orientation.Vertical
       dividerPositions = 0.5
-      items.addAll(firstRow, secondRow)
+      items.addAll(firstRow)
 
     /*
     paneInsidePane.children += firstRow
@@ -97,17 +105,17 @@ object guiTest extends JFXApp3 {
     // TODO: make it stretch over the entire available space
     // and fit the data to the chart
     val xAxis = CategoryAxis("aika") //("aika", 1, 100, 3)
-    val yAxis = NumberAxis("hinta", 80, 5000, 10)
+    // xAxis.autoRanging = false
+    var yAxis = NumberAxis("hinta", 80, 5000, 1)
     val toChartData = (xy: (String, Int)) => XYChart.Data[String, Number](xy._1, xy._2)
 
     // val values = Seq((1.0, 1.0), (2.0, 3.0), (7.0, 4.0), (10.0, 5.0), (20.0, 6.0)).map(toChartData(_))
     val request = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1523229288&to=1680995696")
-    val newValues = request.formatData(request.timedata).map(toChartData(_)).toSeq
+    var newValues = request.formatData(request.timedata).map(toChartData(_)).toSeq
 
     val dataSeries = new XYChart.Series[String, Number]:
       name = "hyvää dataa"
       data = newValues
-
 
     val chart = new LineChart[String, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
       title = "Hieno chart"
@@ -115,14 +123,40 @@ object guiTest extends JFXApp3 {
       // change styling with css?
 
     val stackPane = new StackPane()
-    stackPane.getChildren.addAll(labelTwo)
+    stackPane.getChildren.addAll(chart)
 
     // to fill the entire panel with the chart
-    val paneForChart = new StackPane()
-    paneForChart.getChildren.addAll(chart)
+    val paneForChart = new BorderPane()
+    paneForChart.setTop(secondMenuBar)
+    paneForChart.setCenter(stackPane)
+    val reqq = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1586387688&to=1617923688")
 
-    firstRow.getItems.addAll(stackPane, new HBox(coolLabel))
-    secondRow.getItems.addAll(new HBox(rectangle), new VBox(secondMenuBar, paneForChart), new HBox(labelThree))
+    newWindow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) = {
+        //paneInsidePane.items.addAll(secondRow)
+        //firstRow.getItems.addAll(new HBox(new Label(text = "cool")))
+        newValues = reqq.formatData(reqq.timedata).map(toChartData(_)).toSeq
+        // yAxis = NumberAxis("hinta", 80, 3000, 10)
+
+        dataSeries.data = newValuesxValue
+        yAxis.setUpperBound(5000)
+        xAxis.setMaxWidth(100)
+
+        xAxis.getCategories.clear() // clear previous categories
+        for (data <- dataSeries.data()) { // add new categories
+          xAxis.getCategories.add(data.XValue.toString)
+        }
+        // dataSeries.setData(dataSeries)
+      }
+    })
+
+    newRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) = {
+        paneInsidePane.items.addAll(secondRow)
+        //firstRow.getItems.addAll(new HBox(new Label(text = "cool")))
+      }
+    })
+    secondRow.getItems.addAll(new HBox(rectangle), paneForChart, new HBox(labelThree))
     secondRow.setDividerPositions(0.6, 0.7)
     // paneInsidePane.children += new Label("jihuu")
     root.setCenter(paneInsidePane)
@@ -130,7 +164,7 @@ object guiTest extends JFXApp3 {
     val scene = new Scene(parent = root) // Scene acts as a container for the scene graph
     // val scene = new Scene(new Label("text"))
     stage.scene = scene // Assigning the new scene as the current scene for the stage
-
+    scene.fill = Blue
 
 
     /*
