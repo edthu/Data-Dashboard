@@ -42,7 +42,7 @@ class IntervalPopup(private val chart: PriceChart):
         override def updateItem(item: LocalDate, empty: Boolean): Unit = {
           super.updateItem(item, empty)
           // Disable all dates earlier than the required date
-          if (item.isBefore(minDate)) {
+          if (item.isBefore(minDate) || item.isAfter(java.time.LocalDate.now())) {
             setDisable(true)
             //To set background on a different color
             setStyle("-fx-background-color: #ffc0cb;")
@@ -60,7 +60,7 @@ class IntervalPopup(private val chart: PriceChart):
       alignment = Pos.Center
 
     val message = new Label:
-      text = ""
+      text = "This window can only be closed with\nthe above button"
       alignment = Pos.Center
 
     // The changes are only committed if this button is pressed
@@ -89,9 +89,10 @@ class IntervalPopup(private val chart: PriceChart):
           popupStage.close()
     })
 
-
     pane.getChildren.addAll(startDatePicker, to, endDatePicker, exitWindow, message)
 
     val popupScene = new Scene(parent = pane)
     popupStage.scene = popupScene
+    popupStage.onCloseRequest = (e => e.consume())
     popupStage.showAndWait()
+

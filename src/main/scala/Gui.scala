@@ -100,7 +100,6 @@ object DataDashboard extends JFXApp3 {
       val basePanel = new BorderPane()
       val chartObject = new PriceChart()
       val chartMenu = new MenuBar()
-      // val changeIntervalItem = new Menu("Change interval")
       val optionsMenu = new Menu("Options")
       chartMenu.getMenus.add(optionsMenu)
       basePanel.setTop(chartMenu)
@@ -145,16 +144,29 @@ object DataDashboard extends JFXApp3 {
 
     // Add buttons to add charts to the first row
     addButton(firstRow, 1, createLineChartPane, newChartMenu)
-    // addButton(firstRowm, 1, )
 
     // Used when a row is deleted. Removes the option in the menus to add things to the deleted row
     def deleteButton(rowNum: Int) =
       newChartMenu.items.remove(rowNum - 1)
       newStatWindowMenu.items.remove(rowNum - 1)
 
+    def deleteRowButtonCheck() =
+      if stackOfRows.items.length == 1 then
+        val deleteRow = new MenuItem("Delete a row")
+        dashboardMenu.getItems.addAll(deleteRow)
+        deleteRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+          def handle(actionEvent: javafx.event.ActionEvent) =
+            stackOfRows.getItems.remove(stackOfRows.items.length - 1)
+            if stackOfRows.items.length == 1 then
+              dashboardMenu.items.remove(dashboardMenu.items.length - 1)
+        })
+
+
+
     // Actions for menuItems
     newRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
       def handle(actionEvent: javafx.event.ActionEvent) =
+        deleteRowButtonCheck()
         // A new horizontal SplitPane
         val newRowToBeAdded = aRow
         stackOfRows.getItems.addAll(newRowToBeAdded)
@@ -165,13 +177,6 @@ object DataDashboard extends JFXApp3 {
 
     // Remove row
 
-    
-    
-    // Add a new chart to an existing row
-    newChartMenu.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
-      def handle(actionEvent: javafx.event.ActionEvent) =
-        println("????")
-    })
 
     // need to specify on which row the window is going to be added to
     newStatWindowMenu.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
