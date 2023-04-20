@@ -25,6 +25,14 @@ class requestData(var api: String):
   // The historical data from the Coingecko API is in a form where the time is in UNIX-time.
   // This method changes it to normal time (timezone is based on the systems timezone). The price returned by the call is
   // a double. This method rounds it to an Int.
-  def formatData(data: ArrayBuffer[(Double, Double)]): ArrayBuffer[(String, Int)] =
-    def unixTimestampToNormalTime(epoch: Long) = java.text.SimpleDateFormat("dd/MM/yyyy").format(new Date(epoch))
+
+  def formatData(data: ArrayBuffer[(Double, Double)], dataIntervalLength: Long): ArrayBuffer[(String, Int)] =
+    // If the interval of the data is less than or equal to 90 days (7776000 seconds) then the data is given in
+    // 1 hour intervals. For longer timeframes the datapoints are single days.
+    // This is due to
+    def unixTimestampToNormalTime(epoch: Long) =
+      if dataIntervalLength <= 7776000 then
+        java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date(epoch))
+      else
+        java.text.SimpleDateFormat("dd/MM/yyyy").format(new Date(epoch))
     data.map((timestamp, price) => (unixTimestampToNormalTime(timestamp.toLong), price.toInt))

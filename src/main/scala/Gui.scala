@@ -1,11 +1,13 @@
 import com.sun.javafx.scene.EventHandlerProperties
 import javafx.event.EventHandler
+import javafx.scene.control
+import javafx.scene.control.DatePicker
 import scalafx.Includes.*
 import scalafx.application.JFXApp3
-import scalafx.geometry.Orientation.Horizontal
-import scalafx.scene.Scene
+import scalafx.geometry.Orientation.{Horizontal, Vertical}
+import scalafx.scene.{Node, Scene}
 import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis, XYChart}
-import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
+import scalafx.scene.control.{Button, Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
 import scalafx.scene.layout.{BorderPane, HBox, StackPane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
@@ -15,8 +17,13 @@ import scalafx.collections.ObservableBuffer
 import scalafx.event.ActionEvent
 import scalafx.geometry.Pos.BaselineCenter
 import scalafx.scene.input.MouseEvent
-
+import scalafx.stage.{Modality, Stage}
+import java.time.{LocalDate, Month}
+import javafx.scene.control.{DateCell, DatePicker}
+import javafx.util.Callback
+import java.time.format.DateTimeFormatter
 import java.awt.Color
+import java.time.LocalDate
 import scala.language.postfixOps
 
 object DataDashboard extends JFXApp3 {
@@ -27,7 +34,7 @@ object DataDashboard extends JFXApp3 {
 
   def start():Unit =
     stage = new JFXApp3.PrimaryStage:
-      title = "DataDashboard Test"
+      title = "DataDashboard"
       width = paneWidth
       height = paneHeight
 
@@ -38,14 +45,15 @@ object DataDashboard extends JFXApp3 {
 
     // Top menu
     val menuBar = new MenuBar()
-    root.setCenter(new SplitPane())
 
+    // Menu where you can add new chart to the different rows of the gui.
     val dashboardMenu = new Menu("Dashboard")
     val newRow = new MenuItem("Add a row")
-    val newChart = new MenuItem("Add a chart")
-    val newStatWindow = new MenuItem("Add a stat window")
-    dashboardMenu.getItems.addAll(newRow, newChart, newStatWindow)
-    // newChart need another menu where the user can choose the row the chart is going to be added to
+    val newChartMenu = new Menu("Add a chart")
+    val newStatWindowMenu = new Menu("Add a stat window")
+    dashboardMenu.getItems.addAll(newRow, newChartMenu, newStatWindowMenu)
+    // newChartMenu need another menu where the user can choose the row the chart is going to be added to
+
 
 
     val optionMenu = new Menu("Options")
@@ -55,16 +63,119 @@ object DataDashboard extends JFXApp3 {
     val loadMenuItem = new MenuItem("Load a layout")
     saveMenu.getItems.addAll(saveMenuItem, loadMenuItem)
 
+    // Add this if there is enough time
     // val currency = new Menu("€")
 
+    // All menus to the top of gui. This is not modified anywhere.
     menuBar.getMenus.addAll(dashboardMenu, optionMenu, saveMenu)
     root.setTop(menuBar)
 
     // ChartView
 
 
+    // Different windows and rows
+
+    // The initial layout of the gui. Initially there is only one row
+    val firstRow = new SplitPane:
+      orientation = Horizontal
+
+    val stackOfRows = new SplitPane:
+      orientation = Vertical
+      items.addOne(firstRow)
+
+    // This is where everything will be placed
+    root.setCenter(stackOfRows)
+
+    // New rows
+    def aRow = new SplitPane:
+      orientation = Horizontal
+
+
+
+    // Refactor to so that not every button needs its own funtion thing? Match their names?
+    // foreach of the things. Handles for everything but
+
+    // Creates a chart object and place it into the panels that are going to be added to the gui
+    def createLineChartPane: BorderPane =
+      val basePanel = new BorderPane()
+      val chartObject = new PriceChart()
+      val chartMenu = new MenuBar()
+      val changeIntervalItem = new Menu("Change interval")
+      chartMenu.getMenus.add(changeIntervalItem)
+      basePanel.setTop(chartMenu)
+      basePanel.setCenter(chartObject.chart)
+
+      val optionsMenu = new Menu("Options")
+      // Takes a new interval from the user and gets the appropriate data
+      val changeInterval = new MenuItem("Change interval")
+
+      changeInterval.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+
+        // For that we create a new object that is shared between the new menu in a different window and this one
+        def handle(actionEvent: javafx.event.ActionEvent) =
+          // Create a new popup window where the user can choose a new interval to be displayed in the chart
+          intervalPopup().display()
+          //
+          // chartObject.changeStartTime(IntervalData.getDateObject.getDates._1)
+          // chartObject.changeEndTime(IntervalData.getDateObject.getDates._2)
+          //chartObject.changeChartData(chartObject.api)
+      })
+
+      basePanel
+
+
+
+
+
+    // Adds a menuItem to a menu and makes it so that pressing that menu item adds a given chart to a given row in the
+    // GUI.
+    
+
+    def addButton(row: SplitPane, rowNum: Int, chart: Node, menu: Menu) =
+      val menuItem = new MenuItem(s"Add to row $rowNum")
+      menuItem.setOnAction(new EventHandler[javafx.event.ActionEvent](){
+        def handle(actionEvent: javafx.event.ActionEvent) =
+          row.getItems.addAll(chart)
+      })
+      menu.getItems.addAll(menuItem)
+
+    // Add buttons to add charts to the first row
+    addButton(firstRow, 1, createLineChartPane, newChartMenu)
+    // addButton(firstRowm, 1, )
+
+    // Used when a row is deleted. Removes the option in the menus to add things to the deleted row
+    def deleteButton(rowNum: Int) =
+      newChartMenu.items.remove(rowNum - 1)
+      newStatWindowMenu.items.remove(rowNum - 1)
+
+    // Actions for menuItems
+    newRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) =
+        // A new horizontal SplitPane
+        val newRowToBeAdded = aRow
+        stackOfRows.getItems.addAll(newRowToBeAdded)
+        val indexOfTheNewRow = stackOfRows.getItems.length
+        // Add a new MenuItem to the other menus where you add other types of charts
+        addButton(newRowToBeAdded, indexOfTheNewRow, createLineChartPane, newChartMenu)
+    })
+
+    // Remove row
+
+    
+    
+    // Add a new chart to an existing row
+    newChartMenu.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) =
+        println("????")
+    })
+
+    // need to specify on which row the window is going to be added to
+    newStatWindowMenu.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) = ???
+    })
+
+
     val scene = new Scene(parent = root)
     stage.scene = scene
-    scene.fill = Blue
 }
 

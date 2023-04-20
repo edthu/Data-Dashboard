@@ -6,6 +6,8 @@ import scalafx.geometry.Orientation.Horizontal
 import scalafx.scene.Scene
 import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis, XYChart}
 import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
+import javafx.scene.control.DatePicker
+import javafx.util.Callback
 import scalafx.scene.layout.{BorderPane, HBox, StackPane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
@@ -15,7 +17,11 @@ import scalafx.collections.ObservableBuffer
 import scalafx.event.ActionEvent
 import scalafx.geometry.Pos.BaselineCenter
 import scalafx.scene.input.MouseEvent
+import scalafx.scene.layout.Priority.Always
+import java.time.{LocalDate, Month}
+import javafx.scene.control.{DatePicker,DateCell}
 
+import java.time.LocalDate
 import java.awt.Color
 import scala.language.postfixOps
 
@@ -61,9 +67,28 @@ object GuiTest extends JFXApp3 {
 
     // split panes inside the main window. PaneInsidePane is the main one that divides the view into two
     // vertically. The other are the bottom and top ones. Adding views means adding to the first and second rows.
+    val myDatePicker = new DatePicker // This DatePicker is shown to user
+    val minDate = LocalDate.of(2015, 8, 7) // Ethereum network launch date
+
+    val dayCellFactory: Callback[DatePicker, DateCell] = (datePicker: DatePicker) =>
+      new DateCell {
+        override def updateItem(item: LocalDate, empty: Boolean): Unit = {
+          super.updateItem(item, empty)
+          if (item.isBefore(minDate)) { // Disable all dates earlier than the required date
+            setDisable(true)
+            setStyle("-fx-background-color: #ffc0cb;") //To set background on a different color
+          }
+        }
+      }
+    //Finally, we just need to update our DatePicker cell factory as follow:
+    myDatePicker.setDayCellFactory(dayCellFactory)
+    myDatePicker.setValue(LocalDate.now)
+
+
     val firstRow = new SplitPane:
       dividerPositions = 0.5
       orientation = scalafx.geometry.Orientation.Horizontal
+      items.add(myDatePicker)
 
     val secondRow = new SplitPane:
       // dividerPositions = 0.5
@@ -80,6 +105,17 @@ object GuiTest extends JFXApp3 {
       dividerPositions = 0.5
       items.addAll(firstRow)
 
+    val statStuff = new StatWindow("€")
+    val statLabel = new Label:
+      text = statStuff.text
+
+    statLabel.font = new Font("DejaVu Sans", 18)
+    statLabel.setStyle("-fx-text-fill: #ea43e8; -fx-background-color: #39ec24;")
+    // statLabel.setStyle("-fx-background-color: #39ec24")
+    statLabel.hgrow = Always
+    val onceAgainStackPane = new StackPane()
+    onceAgainStackPane.children += statLabel
+    firstRow.getItems.addAll(onceAgainStackPane)
     /*
     paneInsidePane.children += firstRow
     paneInsidePane.children += secondRow
@@ -100,7 +136,6 @@ object GuiTest extends JFXApp3 {
     val labelThree = new Label  (text = "apiData.json")
     // firstRow.getItems.addAll(coolLabel, labelTwo, labelThree)
 
-
     // everything needed to create a linechart
     // TODO: make it stretch over the entire available space
     // and fit the data to the chart
@@ -111,7 +146,7 @@ object GuiTest extends JFXApp3 {
 
     // val values = Seq((1.0, 1.0), (2.0, 3.0), (7.0, 4.0), (10.0, 5.0), (20.0, 6.0)).map(toChartData(_))
     val request = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1523229288&to=1680995696")
-    var newValues = request.formatData(request.timedata).map(toChartData(_)).toSeq
+    var newValues = request.formatData(request.timedata, 1680995696 - 1523229288).map(toChartData(_)).toSeq
 
     val dataSeries = new XYChart.Series[String, Number]:
       name = "hyvää dataa"
@@ -135,27 +170,32 @@ object GuiTest extends JFXApp3 {
       def handle(actionEvent: javafx.event.ActionEvent) = {
         //paneInsidePane.items.addAll(secondRow)
         //firstRow.getItems.addAll(new HBox(new Label(text = "cool")))
-        newValues = reqq.formatData(reqq.timedata).map(toChartData(_)).toSeq
+        newValues = reqq.formatData(reqq.timedata, 1617923688 - 1586387688).map(toChartData(_)).toSeq
         // yAxis = NumberAxis("hinta", 80, 3000, 10)
 
-        dataSeries.data = newValuesxValue
+        dataSeries.data = newValues
         yAxis.setUpperBound(5000)
         xAxis.setMaxWidth(100)
 
         xAxis.getCategories.clear() // clear previous categories
         for (data <- dataSeries.data()) { // add new categories
           xAxis.getCategories.add(data.XValue.toString)
+          // chartObject
         }
-        // dataSeries.setData(dataSeries)
+        // dataSeries.setData(dataSeries)items
       }
     })
 
     newRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
       def handle(actionEvent: javafx.event.ActionEvent) = {
         paneInsidePane.items.addAll(secondRow)
+        val items = paneInsidePane.getItems.toSeq
+        secondRow.items.addAll(new Label(items.mkString))
+        println(items)
         //firstRow.getItems.addAll(new HBox(new Label(text = "cool")))
       }
     })
+
     secondRow.getItems.addAll(new HBox(rectangle), paneForChart, new HBox(labelThree))
     secondRow.setDividerPositions(0.6, 0.7)
     // paneInsidePane.children += new Label("jihuu")
@@ -165,6 +205,8 @@ object GuiTest extends JFXApp3 {
     // val scene = new Scene(new Label("text"))
     stage.scene = scene // Assigning the new scene as the current scene for the stage
     scene.fill = Blue
+
+
 
 
     /*
