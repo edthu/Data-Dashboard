@@ -174,6 +174,7 @@ object GuiTest extends JFXApp3 {
         // yAxis = NumberAxis("hinta", 80, 3000, 10)
 
         dataSeries.data = newValues
+        println(newValues)
         yAxis.setUpperBound(5000)
         xAxis.setMaxWidth(100)
 

@@ -100,25 +100,29 @@ object DataDashboard extends JFXApp3 {
       val basePanel = new BorderPane()
       val chartObject = new PriceChart()
       val chartMenu = new MenuBar()
-      val changeIntervalItem = new Menu("Change interval")
-      chartMenu.getMenus.add(changeIntervalItem)
+      // val changeIntervalItem = new Menu("Change interval")
+      val optionsMenu = new Menu("Options")
+      chartMenu.getMenus.add(optionsMenu)
       basePanel.setTop(chartMenu)
       basePanel.setCenter(chartObject.chart)
 
-      val optionsMenu = new Menu("Options")
       // Takes a new interval from the user and gets the appropriate data
       val changeInterval = new MenuItem("Change interval")
+      optionsMenu.getItems.add(changeInterval)
 
       changeInterval.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
 
         // For that we create a new object that is shared between the new menu in a different window and this one
         def handle(actionEvent: javafx.event.ActionEvent) =
           // Create a new popup window where the user can choose a new interval to be displayed in the chart
-          intervalPopup().display()
+          IntervalPopup(chartObject).display()
           //
-          // chartObject.changeStartTime(IntervalData.getDateObject.getDates._1)
-          // chartObject.changeEndTime(IntervalData.getDateObject.getDates._2)
-          //chartObject.changeChartData(chartObject.api)
+          val startTime: Long = IntervalData.getDateObject.getDates._1
+          val endTime: Long = IntervalData.getDateObject.getDates._2
+          //chartObject.changeStartTime(IntervalData.getDateObject.getDates._1)
+          //chartObject.changeEndTime(IntervalData.getDateObject.getDates._2)
+
+          chartObject.changeChartData(startTime, endTime)
       })
 
       basePanel

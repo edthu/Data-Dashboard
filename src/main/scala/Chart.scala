@@ -1,5 +1,6 @@
 import scalafx.scene.chart.{CategoryAxis, NumberAxis, LineChart, XYChart}
 import scalafx.collections.ObservableBuffer
+import scalafx.Includes.observableList2ObservableBuffer
 
 class PriceChart:
   def timeInUnixTimeStamp(time: String): Long = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(time).getTime
@@ -35,17 +36,23 @@ class PriceChart:
     newValues = request.formatData(request.timedata, newEnd - newStart).map(toChartData(_)).toSeq
     dataSeries.data = newValues
     // Update the charts to match the new data
-    // val numberOfDataPoints = newValues.length
-    xAxis.tickMarkVisible = false
-    val maxPrice = newValues.maxBy(_.getYValue.asInstanceOf[scala.Int]).getYValue.asInstanceOf[scala.Double]
-    val minPrice = newValues.minBy(_.getYValue.asInstanceOf[scala.Int]).getYValue.asInstanceOf[scala.Double]
+    val numberOfDataPoints = newValues.length
+    xAxis.tickMarkVisible = true
+    println(newValues)
+    //val maxPrice = newValues.maxBy(_.getYValue.asInstanceOf[scala.Int]).getYValue.asInstanceOf[scala.Double]
+    //val minPrice = newValues.minBy(_.getYValue.asInstanceOf[scala.Int]).getYValue.asInstanceOf[scala.Double]
     yAxis.setUpperBound(maxPrice)
     yAxis.setLowerBound(minPrice)
+    xAxis.setMaxWidth(numberOfDataPoints)
+
+    xAxis.getCategories.clear() // clear previous categories
+    for data <- dataSeries.data() do // add new categories
+      xAxis.getCategories.add(data.getXValue)
 
 
   val chart = new LineChart[String, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
     title = "Ethereum price history (USD)"
-    createSymbols = true
+    createSymbols = false
 
 
 

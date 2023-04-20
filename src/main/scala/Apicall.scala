@@ -3,14 +3,17 @@ import java.time.*
 import java.util.Date
 
 // A class for making http-requests and changing the data into a format so that it can be used in the GUI components
-class requestData(var api: String):
+class requestData(private var api: String):
   // Makes a http request with the given url
   def request = requests.get(api)
 
-  def updateApi(newApi: String) = api = newApi 
+  private var currentReq = request
+  def updateApi(newApi: String) = 
+    api = newApi
+    currentReq = request
   
   // Changes the contents of the response to a ujson.value object
-  def json = ujson.read(request.text())
+  def json = ujson.read(currentReq.text())
 
   // Use this only after a request is made for historical data.
   // Converts the ujson.value objects from the api call
@@ -30,7 +33,7 @@ class requestData(var api: String):
     // If the interval of the data is less than or equal to 90 days (7776000 seconds) then the data is given in
     // 1 hour intervals. For longer timeframes the datapoints are single days.
     // This is due to
-    def unixTimestampToNormalTime(epoch: Long) =
+    def unixTimestampToNormalTime(epoch: Long): String =
       if dataIntervalLength <= 7776000 then
         java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date(epoch))
       else

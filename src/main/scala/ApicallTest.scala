@@ -1,3 +1,4 @@
+import javafx.scene.control.DatePicker
 
 @ main def thing() =
   val r = requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
@@ -23,6 +24,9 @@
   println(s"$startTime + $endTime")
   val newRequest = requestData(s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1587417696&to=1681982178291")
   println(request.formatData(request.timedata, endTime - startTime).mkString("\n"))
+
+
+
 
 
 
