@@ -37,18 +37,12 @@ class PriceChart:
     dataSeries.data = newValues
     // Update the charts to match the new data
     val numberOfDataPoints = newValues.length
-    xAxis.tickMarkVisible = true
-    println(newValues)
-    //val maxPrice = newValues.maxBy(_.getYValue.asInstanceOf[scala.Int]).getYValue.asInstanceOf[scala.Double]
-    //val minPrice = newValues.minBy(_.getYValue.asInstanceOf[scala.Int]).getYValue.asInstanceOf[scala.Double]
+    if maxPrice - minPrice > 2000 then
+      val tickUnit = (maxPrice - minPrice) / 10
+      yAxis.tickUnit = Math.ceil(tickUnit / (newValues.length / 1000))
     yAxis.setUpperBound(maxPrice)
     yAxis.setLowerBound(minPrice)
     xAxis.setMaxWidth(numberOfDataPoints)
-
-    xAxis.getCategories.clear() // clear previous categories
-    for data <- dataSeries.data() do // add new categories
-      xAxis.getCategories.add(data.getXValue)
-
 
   val chart = new LineChart[String, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
     title = "Ethereum price history (USD)"
