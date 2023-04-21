@@ -96,7 +96,7 @@ object DataDashboard extends JFXApp3 {
     // foreach of the things. Handles for everything but
 
     // Creates a chart object and place it into the panels that are going to be added to the gui
-    def createLineChartPane: BorderPane =
+    def createLineChartPane(): Node =
       val basePanel = new BorderPane()
       val chartObject = new PriceChart()
       val chartMenu = new MenuBar()
@@ -133,11 +133,14 @@ object DataDashboard extends JFXApp3 {
     // Adds a menuItem to a menu and makes it so that pressing that menu item adds a given chart to a given row in the
     // GUI.
     
-
-    def addButton(row: SplitPane, rowNum: Int, chart: Node, menu: Menu) =
+    // always adds the same chart to the same row. Need a way to create a new instance of this chart to add to the row.
+    // Adding the same istance just moves the chart from the initial location to the new window. A single row can only
+    // have one instance at all times.
+    def addButton(row: SplitPane, rowNum: Int, chartFunction: () => Node, menu: Menu) =
       val menuItem = new MenuItem(s"Add to row $rowNum")
       menuItem.setOnAction(new EventHandler[javafx.event.ActionEvent](){
         def handle(actionEvent: javafx.event.ActionEvent) =
+          val chart: Node = chartFunction.apply()
           row.getItems.addAll(chart)
       })
       menu.getItems.addAll(menuItem)
@@ -174,8 +177,6 @@ object DataDashboard extends JFXApp3 {
         // Add a new MenuItem to the other menus where you add other types of charts
         addButton(newRowToBeAdded, indexOfTheNewRow, createLineChartPane, newChartMenu)
     })
-
-    // Remove row
 
 
     // need to specify on which row the window is going to be added to
