@@ -151,7 +151,7 @@ object DataDashboard extends JFXApp3 {
     // Used when a row is deleted. Removes the option in the menus to add things to the deleted row
     def deleteButton(rowNum: Int) =
       newChartMenu.items.remove(rowNum - 1)
-      newStatWindowMenu.items.remove(rowNum - 1)
+      // newStatWindowMenu.items.remove(rowNum - 1)
 
     def deleteRowButtonCheck() =
       if stackOfRows.items.length == 1 then
@@ -159,9 +159,11 @@ object DataDashboard extends JFXApp3 {
         dashboardMenu.getItems.addAll(deleteRow)
         deleteRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
           def handle(actionEvent: javafx.event.ActionEvent) =
+            deleteButton(stackOfRows.items.length)
             stackOfRows.getItems.remove(stackOfRows.items.length - 1)
             if stackOfRows.items.length == 1 then
               dashboardMenu.items.remove(dashboardMenu.items.length - 1)
+
         })
 
 
