@@ -164,7 +164,8 @@ object GuiTest extends JFXApp3 {
     val paneForChart = new BorderPane()
     paneForChart.setTop(secondMenuBar)
     paneForChart.setCenter(stackPane)
-    val reqq = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1586387688&to=1617923688")
+    // 2016 1460582496   2018 1586387688
+    val reqq = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1460582496&to=1617923688")
 
     newWindow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
       def handle(actionEvent: javafx.event.ActionEvent) = {
@@ -181,6 +182,9 @@ object GuiTest extends JFXApp3 {
         xAxis.getCategories.clear() // clear previous categories
         for (data <- dataSeries.data()) { // add new categories
           xAxis.getCategories.add(data.XValue.toString)
+          
+          
+          
           // chartObject
         }
         // dataSeries.setData(dataSeries)items

@@ -18,7 +18,7 @@ import scalafx.scene.control.Button
 // create the stage
 // Popup window for changing the interval of the datachart
 
-class IntervalPopup(private val chart: PriceChart):
+class IntervalPopup():
   def display() =
     val popupStage = new Stage:
       title = "Select New Interval"
@@ -78,8 +78,8 @@ class IntervalPopup(private val chart: PriceChart):
           // Parse String "sourceDate" to LocalDate, then format to "dd/MM/yyyy" format
           LocalDate.parse(sourceDate, sourceFormatter).format(targetFormatter)
 
-        val startTime = chart.timeInUnixTimeStamp(convertDateFormat(startDatePicker.getValue.toString)) / 1000
-        val endTime = chart.timeInUnixTimeStamp(convertDateFormat(endDatePicker.getValue.toString)) / 1000
+        val startTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(startDatePicker.getValue.toString)) / 1000
+        val endTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(endDatePicker.getValue.toString)) / 1000
 
         //
         if endTime < startTime then

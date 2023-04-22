@@ -3,7 +3,6 @@ import scalafx.collections.ObservableBuffer
 import scalafx.Includes.observableList2ObservableBuffer
 
 class PriceChart:
-  def timeInUnixTimeStamp(time: String): Long = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(time).getTime
 
   // The api call is based on these times
   // By the default the last week

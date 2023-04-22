@@ -10,7 +10,7 @@ import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis
 import scalafx.scene.control.{Button, Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
 import scalafx.scene.layout.{BorderPane, HBox, StackPane, VBox}
 import scalafx.scene.paint.Color.*
-import scalafx.scene.shape.Rectangle
+import scalafx.scene.shape.{Line, Rectangle}
 import scalafx.scene.text.{Font, TextFlow}
 import scalafx.Includes.*
 import scalafx.collections.ObservableBuffer
@@ -18,9 +18,11 @@ import scalafx.event.ActionEvent
 import scalafx.geometry.Pos.BaselineCenter
 import scalafx.scene.input.MouseEvent
 import scalafx.stage.{Modality, Stage}
+
 import java.time.{LocalDate, Month}
 import javafx.scene.control.{DateCell, DatePicker}
 import javafx.util.Callback
+
 import java.time.format.DateTimeFormatter
 import java.awt.Color
 import java.time.LocalDate
@@ -114,19 +116,43 @@ object DataDashboard extends JFXApp3 {
         // For that we create a new object that is shared between the new menu in a different window and this one
         def handle(actionEvent: javafx.event.ActionEvent) =
           // Create a new popup window where the user can choose a new interval to be displayed in the chart
-          IntervalPopup(chartObject).display()
-          //
+          IntervalPopup().display()
+
           val startTime: Long = IntervalData.getDateObject.getDates._1
           val endTime: Long = IntervalData.getDateObject.getDates._2
-          //chartObject.changeStartTime(IntervalData.getDateObject.getDates._1)
-          //chartObject.changeEndTime(IntervalData.getDateObject.getDates._2)
 
           chartObject.changeChartData(startTime, endTime)
       })
 
       basePanel
 
+    def createStatWindowPane() =
+      val basePanel = new BorderPane()
+      val statWindowPane = new StackPane()
+      val statWindow = new StatWindow("€")
+      val statLabel = new Label(statWindow.text)
+      statWindowPane.getChildren.addAll(statLabel)
+      val menuBar = new MenuBar()
+      val optionMenu = new Menu("Options")
+      menuBar.getMenus.add(optionMenu)
+      val changeInterval = new MenuItem("Change interval")
+      optionMenu.getItems.add(changeInterval)
+      basePanel.setCenter(statWindowPane)
+      basePanel.setTop(menuBar)
 
+      changeInterval.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+        def handle(actionEvent: javafx.event.ActionEvent) =
+          IntervalPopup().display()
+
+          val startTime: Long = IntervalData.getDateObject.getDates._1
+          val endTime: Long = IntervalData.getDateObject.getDates._2
+
+          statWindow.updateData(startTime, endTime)
+          statLabel.text = statWindow.text
+      })
+
+
+      basePanel
 
 
 
@@ -147,11 +173,12 @@ object DataDashboard extends JFXApp3 {
 
     // Add buttons to add charts to the first row
     addButton(firstRow, 1, createLineChartPane, newChartMenu)
+    addButton(firstRow, 1, createStatWindowPane, newStatWindowMenu)
 
     // Used when a row is deleted. Removes the option in the menus to add things to the deleted row
     def deleteButton(rowNum: Int) =
       newChartMenu.items.remove(rowNum - 1)
-      // newStatWindowMenu.items.remove(rowNum - 1)
+      newStatWindowMenu.items.remove(rowNum - 1)
 
     def deleteRowButtonCheck() =
       if stackOfRows.items.length == 1 then
@@ -178,12 +205,7 @@ object DataDashboard extends JFXApp3 {
         val indexOfTheNewRow = stackOfRows.getItems.length
         // Add a new MenuItem to the other menus where you add other types of charts
         addButton(newRowToBeAdded, indexOfTheNewRow, createLineChartPane, newChartMenu)
-    })
-
-
-    // need to specify on which row the window is going to be added to
-    newStatWindowMenu.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
-      def handle(actionEvent: javafx.event.ActionEvent) = ???
+        addButton(newRowToBeAdded, indexOfTheNewRow, createStatWindowPane, newStatWindowMenu)
     })
 
 
