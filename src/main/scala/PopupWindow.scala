@@ -96,3 +96,68 @@ class IntervalPopup():
     popupStage.onCloseRequest = (e => e.consume())
     popupStage.showAndWait()
 
+class SingleDatePopUp():
+  def display() =
+    val popupStage = new Stage:
+      title = "Select a date to visualise"
+      width = 250
+      height = 150
+      resizable = false
+
+    popupStage.initModality(Modality.ApplicationModal)
+
+    val pane = new VBox
+
+    val datePicker = new DatePicker // This DatePicker is shown to user
+
+    // Ethereum network launch date
+    val minDate = LocalDate.of(2015, 8, 7)
+
+    val dayCellFactory: Callback[DatePicker, DateCell] = (datePicker: DatePicker) =>
+      new DateCell {
+        override def updateItem(item: LocalDate, empty: Boolean): Unit = {
+          super.updateItem(item, empty)
+          // Disable all dates earlier than the required date
+          if (item.isBefore(minDate) || item.isAfter(java.time.LocalDate.now())) {
+            setDisable(true)
+            //To set background on a different color
+            setStyle("-fx-background-color: #ffc0cb;")
+          }
+        }
+      }
+    //Finally, we just need to update our DatePicker cell factory as follow:
+    datePicker.setDayCellFactory(dayCellFactory)
+    datePicker.setValue(LocalDate.now)
+
+    val message = new Label:
+      text = "This window can only be closed with\nthe above button"
+      alignment = Pos.Center
+
+    // The changes are only committed if this button is pressed
+    val exitWindow = new Button("Set interval and return to chart")
+
+    exitWindow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) =
+        // Changes the dates of the chart to the currently selected options
+        // if the dates are valid. Else rejects the options and does not yet quit
+        def convertDateFormat(sourceDate: String): String =
+          // Define input and output formats
+          val sourceFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+          val targetFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+          // Parse String "sourceDate" to LocalDate, then format to "dd/MM/yyyy" format
+          LocalDate.parse(sourceDate, sourceFormatter).format(targetFormatter)
+
+        val startTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(datePicker.getValue.toString))
+
+        IntervalData.getDateObject.setDates(startTime, 0)
+        popupStage.close()
+    })
+
+    pane.getChildren.addAll(datePicker, exitWindow, message)
+
+    val popupScene = new Scene(parent = pane)
+    popupStage.scene = popupScene
+    popupStage.onCloseRequest = (e => e.consume())
+    popupStage.showAndWait()
+

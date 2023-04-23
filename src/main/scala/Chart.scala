@@ -1,6 +1,6 @@
-import scalafx.scene.chart.{CategoryAxis, NumberAxis, LineChart, XYChart}
-import scalafx.collections.ObservableBuffer
 import scalafx.Includes.observableList2ObservableBuffer
+import scalafx.collections.ObservableBuffer
+import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
 
 class PriceChart:
 
@@ -10,16 +10,16 @@ class PriceChart:
   // By default the current day
   private var endTime: Long = System.currentTimeMillis() / 1000
 
-  def changeStartTime(newTime: Long) = startTime = newTime
-  def changeEndTime(newTime: Long) = endTime = newTime
+  def changeStartTime(newTime: Long): Unit = startTime = newTime
+  def changeEndTime(newTime: Long): Unit = endTime = newTime
 
   // By default the Chart is of the prices of the last week
-  // def api = s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=$startTime&to=$endTime"
   val request = requestData(s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=$startTime&to=$endTime")
   val xAxis = CategoryAxis("time")
-  def maxPrice = request.timedata.maxBy(_._2)._2.toInt
-  def minPrice = request.timedata.minBy(_._2)._2.toInt
-  val yAxis = NumberAxis("price", minPrice, maxPrice, 1)
+
+  def maxPrice: Int = request.timedata.maxBy(_._2)._2.toInt
+  def minPrice: Int = request.timedata.minBy(_._2)._2.toInt
+  val yAxis = NumberAxis("Price", minPrice, maxPrice, 1)
   val toChartData = (xy: (String, Int)) => XYChart.Data[String, Number](xy._1, xy._2)
 
   var newValues = request.formatData(request.timedata, endTime - startTime).map(toChartData(_)).toSeq
@@ -28,7 +28,7 @@ class PriceChart:
     name = "Price"
     data = newValues
 
-  def changeChartData(newStart: Long, newEnd: Long) =
+  def changeChartData(newStart: Long, newEnd: Long): Unit =
     val newApi = (s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=$newStart&to=$newEnd")
     request.updateApi(newApi)
     // Make a new call and convert the data to chartData.

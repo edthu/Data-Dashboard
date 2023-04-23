@@ -9,3 +9,5 @@ object TimeConversions:
   def timeInUnixTimeStamp(time: String): Long = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(time).getTime
 
   def unixTimestampToddMMyyyy(epoch: Long) = java.text.SimpleDateFormat("dd/MM/yyyy").format(new Date(epoch))
+  
+  def unixTimestampToddMMyyyyWithDash(epoch: Long) = java.text.SimpleDateFormat("dd-MM-yyyy").format(new Date(epoch))
