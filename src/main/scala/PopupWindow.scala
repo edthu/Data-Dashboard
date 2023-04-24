@@ -82,8 +82,8 @@ class IntervalPopup():
         val endTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(endDatePicker.getValue.toString)) / 1000
 
         //
-        if endTime < startTime then
-          message.text = "End date cannot be earlier than \nstart date"
+        if endTime <= startTime then
+          message.text = "End date cannot be earlier or the \nsame date as start date"
         else
           IntervalData.getDateObject.setDates(startTime, endTime)
           popupStage.close()

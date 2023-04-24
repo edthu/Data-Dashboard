@@ -45,11 +45,12 @@ class PriceChart:
     def numberOfDataPoints = newValues.length
     if maxPrice - minPrice > 2000 then
       val tickUnit = (maxPrice - minPrice) / 10
-      yAxis.tickUnit = Math.ceil(tickUnit / (numberOfDataPoints / 1000))
+      val tickUnitScale = if numberOfDataPoints < 1000 then 1000 else numberOfDataPoints
+      yAxis.tickUnit = Math.ceil(tickUnit / (tickUnitScale / 1000))
     yAxis.setUpperBound(maxPrice)
     yAxis.setLowerBound(minPrice)
     xAxis.setMaxWidth(numberOfDataPoints)
-    addTooltips()
+    // addTooltips()
 
   val chart = new LineChart[String, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
     title = "Ethereum price history (USD)"

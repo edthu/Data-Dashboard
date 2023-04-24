@@ -103,7 +103,7 @@ object DataDashboard extends JFXApp3 {
     def createLineChartPane(): ChartPane =
 
       val chartObject = new PriceChart()
-      val basePanel = new ChartPane(chartObject.chart, chartObject)//BorderPane()
+      val basePanel = new ChartPane(chartObject.chart, chartObject)
       val chartMenu = new MenuBar()
       val optionsMenu = new Menu("Options")
       chartMenu.getMenus.add(optionsMenu)
@@ -113,7 +113,7 @@ object DataDashboard extends JFXApp3 {
 
       // Takes a new interval from the user and gets the appropriate data
       val changeInterval = new MenuItem("Change interval")
-      val showTooltips = new MenuItem("Show tooltips")
+      val showTooltips = new MenuItem("Show/hide tooltips")
       optionsMenu.getItems.addAll(changeInterval, showTooltips)
 
       changeInterval.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
@@ -174,7 +174,8 @@ object DataDashboard extends JFXApp3 {
       val optionsMenu = new Menu("Options")
       menuBar.getMenus.add(optionsMenu)
       val changeDate = new MenuItem("Change Date")
-      optionsMenu.getItems.add(changeDate)
+      val showTooltips = new MenuItem("Show/hide tooltips")
+      optionsMenu.getItems.addAll(changeDate, showTooltips)
       basePanel.setTop(menuBar)
       basePanel.setCenter(barChart.chart)
 
@@ -186,6 +187,14 @@ object DataDashboard extends JFXApp3 {
           val startTime: Long = IntervalData.getDateObject.getDates._1
 
           barChart.updateData(startTime)
+      })
+
+      var tooltipsShown = false
+
+      showTooltips.setOnAction(new EventHandler[javafx.event.ActionEvent](){
+        def handle(actionEvent: javafx.event.ActionEvent) =
+          if !tooltipsShown then
+            barChart.addTooltips()
       })
 
       basePanel
