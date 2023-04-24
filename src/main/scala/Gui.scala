@@ -98,12 +98,6 @@ object DataDashboard extends JFXApp3 {
 
 
 
-    class ChartPane(chart: LineChart[String, Number], val priceChart: PriceChart) extends BorderPane {
-      center = chart
-      def getCenter: LineChart[String, Number] = chart
-
-      def getChartObject = priceChart
-    }
 
     // Creates a chart object and place it into the panels that are going to be added to the gui
     def createLineChartPane(): ChartPane =
@@ -145,10 +139,10 @@ object DataDashboard extends JFXApp3 {
 
       basePanel
 
-    def createStatWindowPane() =
-      val basePanel = new BorderPane()
+    def createStatWindowPane(): StatWindowPane =
       val statWindowPane = new StackPane()
       val statWindow = new StatWindow("USD")
+      val basePanel = new StatWindowPane(statWindow)
       val statLabel = new Label(statWindow.text)
       statWindowPane.getChildren.addAll(statLabel)
       val menuBar = new MenuBar()
@@ -173,9 +167,9 @@ object DataDashboard extends JFXApp3 {
 
       basePanel
 
-    def createBarChartPane() =
-      val basePanel = new BorderPane()
+    def createBarChartPane(): BarChartPane =
       val barChart = new MarketCapBarChart()
+      val basePanel = new BarChartPane(barChart.chart, barChart)
       val menuBar = new MenuBar()
       val optionsMenu = new Menu("Options")
       menuBar.getMenus.add(optionsMenu)
@@ -205,24 +199,24 @@ object DataDashboard extends JFXApp3 {
 
     // TODO: handle all different charts
     // chart function returns a custom class. Match and add the chart to the scene?
-    def addButton(row: SplitPane, rowNum: Int, chartFunction: () => Node, menu: Menu) =
+    def addButton(row: SplitPane, rowNum: Int, chartFunction: () => ChartPanel, menu: Menu) =
       val menuItem = new MenuItem(s"Add to row $rowNum")
       menuItem.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
         def handle(actionEvent: javafx.event.ActionEvent) =
           val chart = chartFunction.apply()
           row.getItems.addAll(chart)
-          /* chart.getChartObject.addTooltips()
+          /*
           chart match
-            case ChartPane => {chart.getChartObject.addTooltips()}
-            _ =>
-          */
+            case c: ChartPane => c.getChartObject.addTooltips()
+            case b: BarChartPane => b.
+            case s: StatWindowPane => */
       })
       menu.getItems.addAll(menuItem)
 
     // Add buttons to add charts to the first row
     addButton(firstRow, 1, createLineChartPane, newChartMenu)
-    // addButton(firstRow, 1, createStatWindowPane, newStatWindowMenu)
-    // addButton(firstRow, 1, createBarChartPane, newBarChartMenu)
+    addButton(firstRow, 1, createStatWindowPane, newStatWindowMenu)
+    addButton(firstRow, 1, createBarChartPane, newBarChartMenu)
 
     // Used when a row is deleted. Removes the option in the menus to add things to the deleted row
     def deleteButton(rowNum: Int) =
@@ -254,8 +248,8 @@ object DataDashboard extends JFXApp3 {
         val indexOfTheNewRow = stackOfRows.getItems.length
         // Add a new MenuItem to the other menus where you add other types of charts
         addButton(newRowToBeAdded, indexOfTheNewRow, createLineChartPane, newChartMenu)
-        // addButton(newRowToBeAdded, indexOfTheNewRow, createStatWindowPane, newStatWindowMenu)
-        // addButton(newRowToBeAdded, indexOfTheNewRow, createBarChartPane, newBarChartMenu)
+        addButton(newRowToBeAdded, indexOfTheNewRow, createStatWindowPane, newStatWindowMenu)
+        addButton(newRowToBeAdded, indexOfTheNewRow, createBarChartPane, newBarChartMenu)
     })
 
 

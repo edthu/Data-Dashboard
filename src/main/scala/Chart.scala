@@ -1,6 +1,9 @@
 import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.chart.{CategoryAxis, LineChart, NumberAxis, XYChart}
+import scalafx.scene.control.Tooltip
+
+import scala.language.postfixOps
 
 class PriceChart:
 
@@ -28,6 +31,10 @@ class PriceChart:
     name = "Price"
     data = newValues
 
+  // Add tooltips to all the values in the chart
+
+
+
   def changeChartData(newStart: Long, newEnd: Long): Unit =
     val newApi = (s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=$newStart&to=$newEnd")
     request.updateApi(newApi)
@@ -35,17 +42,33 @@ class PriceChart:
     newValues = request.formatData(request.timedata, newEnd - newStart).map(toChartData(_)).toSeq
     dataSeries.data = newValues
     // Update the charts to match the new data
-    val numberOfDataPoints = newValues.length
+    def numberOfDataPoints = newValues.length
     if maxPrice - minPrice > 2000 then
       val tickUnit = (maxPrice - minPrice) / 10
-      yAxis.tickUnit = Math.ceil(tickUnit / (newValues.length / 1000))
+      yAxis.tickUnit = Math.ceil(tickUnit / (numberOfDataPoints / 1000))
     yAxis.setUpperBound(maxPrice)
     yAxis.setLowerBound(minPrice)
     xAxis.setMaxWidth(numberOfDataPoints)
+    addTooltips()
 
   val chart = new LineChart[String, Number](xAxis, yAxis, ObservableBuffer(dataSeries)):
     title = "Ethereum price history (USD)"
     createSymbols = false
+    animated = false
+
+  def addTooltips() =
+    chart.createSymbols = true
+    for
+      s <- chart.getData
+      d <- s.getData
+    do
+      javafx.scene.control.Tooltip.install(d.getNode, new Tooltip(d.getXValue + "\n" + "Price: " + d.getYValue))
+
+      //d.setNode(node)
+      d.getNode.setOnMouseEntered(event => d.getNode.getStyleClass.add("onHover"))
+
+      //Removing class on exit
+      d.getNode.setOnMouseExited(event => d.getNode.getStyleClass.remove("onHover"))
 
 
 
