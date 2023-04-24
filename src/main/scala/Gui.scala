@@ -52,11 +52,12 @@ object DataDashboard extends JFXApp3 {
 
     // Menu where you can add new chart to the different rows of the gui.
     val dashboardMenu = new Menu("Dashboard")
+    val clearFirstRow = new MenuItem("Clear first row")
     val newRow = new MenuItem("Add a row")
     val newChartMenu = new Menu("Add a chart")
     val newStatWindowMenu = new Menu("Add a stat window")
     val newBarChartMenu = new Menu("Add a bar chart")
-    dashboardMenu.getItems.addAll(newRow, newChartMenu, newStatWindowMenu, newBarChartMenu)
+    dashboardMenu.getItems.addAll(newRow, clearFirstRow, newChartMenu, newStatWindowMenu, newBarChartMenu)
     // newChartMenu need another menu where the user can choose the row the chart is going to be added to
 
 
@@ -90,6 +91,12 @@ object DataDashboard extends JFXApp3 {
 
     // This is where everything will be placed
     root.setCenter(stackOfRows)
+
+    clearFirstRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(event: javafx.event.ActionEvent) =
+        firstRow.items.clear()
+    })
+
 
     // New rows
     def aRow = new SplitPane:
@@ -242,7 +249,6 @@ object DataDashboard extends JFXApp3 {
             stackOfRows.getItems.remove(stackOfRows.items.length - 1)
             if stackOfRows.items.length == 1 then
               dashboardMenu.items.remove(dashboardMenu.items.length - 1)
-
         })
 
 
