@@ -8,10 +8,11 @@ import javafx.scene.control.{DateCell, DatePicker}
 import javafx.util.Callback
 import scalafx.geometry.Pos
 import scalafx.scene.Scene
-import scalafx.scene.control.Label
+import scalafx.scene.control.{Button, Label, TextField}
 
 import java.time.format.DateTimeFormatter
-import scalafx.scene.control.Button
+import scala.io.Source
+import scala.util.Using
 // Shows the user a menu where they can choose the interval from which the chart is drawn from.
 
 // In the menu the user can choose the day, year and month where the interval begins and ends
@@ -160,4 +161,54 @@ class SingleDatePopUp():
     popupStage.scene = popupScene
     popupStage.onCloseRequest = (e => e.consume())
     popupStage.showAndWait()
+
+class SaveNamingPopUp():
+  def display() =
+    val popupStage = new Stage:
+      title = "Name the savefile"
+      width = 250
+      height = 150
+      resizable = false
+
+    popupStage.initModality(Modality.ApplicationModal)
+
+    val pane = new VBox
+
+    val textField = new TextField()
+
+    val message = new Label:
+      text = "This window can only be closed with\nthe above button"
+      alignment = Pos.Center
+
+    // The changes are only committed if this button is pressed
+    val exitWindow = new Button("Save")
+
+    exitWindow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(actionEvent: javafx.event.ActionEvent) =
+        // Check if the selected name is already taken
+        val enteredName = textField.getText
+        val pathToJSON = "src/main/scala/savefiles.json"
+        val jsonSource = Source.fromFile(pathToJSON)
+        val jsonString = jsonSource.getLines().mkString
+        jsonSource.close()
+        val json = ujson.read(jsonString)
+        val isNameTaken = json.obj.keySet.contains(enteredName)
+
+        if isNameTaken then
+          message.text = "There is already a save file with\nthat name"
+        else
+          SaveFileName.getSaveFileName.changeName(enteredName)
+          popupStage.close()
+        // if the name does not exist then ok otherwise reject
+        textField.getText
+    })
+
+    pane.getChildren.addAll(textField, exitWindow, message)
+
+    val popupScene = new Scene(parent = pane)
+    popupStage.scene = popupScene
+    popupStage.onCloseRequest = (e => e.consume())
+    popupStage.showAndWait()
+
+
 
