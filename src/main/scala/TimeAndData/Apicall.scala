@@ -1,11 +1,16 @@
-import scala.collection.mutable.ArrayBuffer
+package TimeAndData
+
+import TimeAndData.TimeConversions
+
 import java.time.*
 import java.util.Date
+import scala.collection.mutable.ArrayBuffer
 
 // A class for making http-requests and changing the data into a format so that it can be used in the GUI components
 class requestData(private var api: String):
   // Makes a http request with the given url
   def request = requests.get(api)
+
 
   private var currentReq = request
   def updateApi(newApi: String) = 
@@ -26,7 +31,7 @@ class requestData(private var api: String):
   def timedata = json.obj("prices").arr.map(value => (value(0).num, value(1).num))
 
   def volumedata = json.obj("total_volumes").arr.
-    map(value => (TimeConversions.unixTimestampToddMMyyyy(value(0).num.toLong), value(1).num.toInt))
+    map(value => (TimeConversions.unixTimestampToddMMyyyy((value(0).num.toLong)), (value(1).num.toLong / 1000000000).toInt))
 
   // The historical data from the Coingecko API is in a form where the time is in UNIX-time.
   // This method changes it to normal time (timezone is based on the systems timezone). The price returned by the call is

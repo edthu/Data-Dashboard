@@ -1,22 +1,23 @@
-import javafx.event.EventHandler
-import scalafx.scene.layout.VBox
-import scalafx.stage.Stage
-import scalafx.stage.{Modality, Stage}
+package Gui
 
-import java.time.{LocalDate, Month}
+import DataStorages.IntervalData
+import TimeAndData.TimeConversions
+import javafx.event.EventHandler
 import javafx.scene.control.{DateCell, DatePicker}
 import javafx.util.Callback
 import scalafx.geometry.Pos
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, Label, TextField}
+import scalafx.scene.layout.VBox
+import scalafx.stage.{Modality, Stage}
 
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, Month}
 import scala.io.Source
-import scala.util.Using
 // Shows the user a menu where they can choose the interval from which the chart is drawn from.
-
 // In the menu the user can choose the day, year and month where the interval begins and ends
-// create the stage
+
+
 // Popup window for changing the interval of the datachart
 
 class IntervalPopup():
@@ -27,17 +28,19 @@ class IntervalPopup():
       height = 200
       resizable = false
 
-
+    // The main window can only be accessed after interacting with the popup
     popupStage.initModality(Modality.ApplicationModal)
 
     val pane = new VBox
 
     // Choose the start and end points of the interval that is going to be displayed on the chart
-    val startDatePicker = new DatePicker // This DatePicker is shown to user
+    val startDatePicker = new DatePicker
     val endDatePicker = new DatePicker
     // Ethereum network launch date
     val minDate = LocalDate.of(2015, 8, 7)
 
+
+    // Disables the dates before Ethereum launch date and after current day
     val dayCellFactory: Callback[DatePicker, DateCell] = (datePicker: DatePicker) =>
       new DateCell {
         override def updateItem(item: LocalDate, empty: Boolean): Unit = {
@@ -69,8 +72,7 @@ class IntervalPopup():
 
     exitWindow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
       def handle(actionEvent: javafx.event.ActionEvent) =
-        // Changes the dates of the chart to the currently selected options
-        // if the dates are valid. Else rejects the options and does not yet quit
+        // Converts the date from yyyy-MM-dd (datepicker default) to dd/MM/yyyy (used in the apicall)
         def convertDateFormat(sourceDate: String): String =
           // Define input and output formats
           val sourceFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -82,7 +84,8 @@ class IntervalPopup():
         val startTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(startDatePicker.getValue.toString)) / 1000
         val endTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(endDatePicker.getValue.toString)) / 1000
 
-        //
+        // Changes the dates of the chart to the currently selected options
+        // if the dates are valid. Else rejects the options and does not yet quit
         if endTime <= startTime then
           message.text = "End date cannot be earlier or the \nsame date as start date"
         else
@@ -94,9 +97,11 @@ class IntervalPopup():
 
     val popupScene = new Scene(parent = pane)
     popupStage.scene = popupScene
+    // prevents the window from being closed with x from top bar of the window
     popupStage.onCloseRequest = (e => e.consume())
     popupStage.showAndWait()
 
+// A popup window for choosing a single date
 class SingleDatePopUp():
   def display() =
     val popupStage = new Stage:
@@ -108,12 +113,13 @@ class SingleDatePopUp():
     popupStage.initModality(Modality.ApplicationModal)
 
     val pane = new VBox
-
-    val datePicker = new DatePicker // This DatePicker is shown to user
+    // This DatePicker is shown to user
+    val datePicker = new DatePicker
 
     // Ethereum network launch date
     val minDate = LocalDate.of(2015, 8, 7)
 
+    // Disables the dates before Ethereum launch date and after current day
     val dayCellFactory: Callback[DatePicker, DateCell] = (datePicker: DatePicker) =>
       new DateCell {
         override def updateItem(item: LocalDate, empty: Boolean): Unit = {
@@ -126,7 +132,7 @@ class SingleDatePopUp():
           }
         }
       }
-    //Finally, we just need to update our DatePicker cell factory as follow:
+    // Set the disabled states and set default value to current time
     datePicker.setDayCellFactory(dayCellFactory)
     datePicker.setValue(LocalDate.now)
 
@@ -151,6 +157,7 @@ class SingleDatePopUp():
 
         val startTime = TimeConversions.timeInUnixTimeStamp(convertDateFormat(datePicker.getValue.toString))
 
+        // The interval data class is used to transfer data between the closed popup window and main window
         IntervalData.getDateObject.setDates(startTime, 0)
         popupStage.close()
     })
@@ -162,6 +169,7 @@ class SingleDatePopUp():
     popupStage.onCloseRequest = (e => e.consume())
     popupStage.showAndWait()
 
+/*
 class SaveNamingPopUp():
   def display() =
     val popupStage = new Stage:
@@ -197,7 +205,7 @@ class SaveNamingPopUp():
         if isNameTaken then
           message.text = "There is already a save file with\nthat name"
         else
-          SaveFileName.getSaveFileName.changeName(enteredName)
+          DataStorages.SaveFileName.getSaveFileName.changeName(enteredName)
           popupStage.close()
         // if the name does not exist then ok otherwise reject
         textField.getText
@@ -209,6 +217,7 @@ class SaveNamingPopUp():
     popupStage.scene = popupScene
     popupStage.onCloseRequest = (e => e.consume())
     popupStage.showAndWait()
+*/
 
 
 

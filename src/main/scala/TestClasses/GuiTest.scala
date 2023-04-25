@@ -1,32 +1,34 @@
+package TestClasses
+
+import Charts.StatWindow
+import TestClasses.GuiTest.stage
+import TimeAndData.requestData
 import com.sun.javafx.scene.EventHandlerProperties
 import javafx.event.EventHandler
+import javafx.scene.control.{DateCell, DatePicker}
+import javafx.util.Callback
 import scalafx.Includes.*
 import scalafx.application.JFXApp3
+import scalafx.collections.ObservableBuffer
+import scalafx.event.ActionEvent
 import scalafx.geometry.Orientation.Horizontal
+import scalafx.geometry.Pos.BaselineCenter
 import scalafx.scene.Scene
-import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis, XYChart}
-import scalafx.scene.control.{Label, Menu, MenuBar, MenuItem, SplitPane, TextArea}
-import javafx.scene.control.DatePicker
-import javafx.util.Callback
+import scalafx.scene.chart.*
+import scalafx.scene.control.*
+import scalafx.scene.input.MouseEvent
+import scalafx.scene.layout.Priority.Always
 import scalafx.scene.layout.{BorderPane, HBox, StackPane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.{Font, TextFlow}
-import scalafx.Includes.*
-import scalafx.collections.ObservableBuffer
-import scalafx.event.ActionEvent
-import scalafx.geometry.Pos.BaselineCenter
-import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.Priority.Always
-import java.time.{LocalDate, Month}
-import javafx.scene.control.{DatePicker,DateCell}
 
-import java.time.LocalDate
 import java.awt.Color
+import java.time.{LocalDate, Month}
 import scala.language.postfixOps
 
 object GuiTest extends JFXApp3 {
-  /*val text: String = jsontest.requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum").toString
+  /*val text: String = jsontest.TimeAndData.requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum").toString
   val someTextOnTheStage = new Label("tee")
   someTextOnTheStage.textFill = Blue
   someTextOnTheStage.font = Font.font(36) */
@@ -105,7 +107,7 @@ object GuiTest extends JFXApp3 {
       dividerPositions = 0.5
       items.addAll(firstRow)
 
-    val statStuff = new StatWindow("€")
+    val statStuff = new StatWindow()
     val statLabel = new Label:
       text = statStuff.text
 
@@ -196,8 +198,6 @@ object GuiTest extends JFXApp3 {
         paneInsidePane.items.addAll(secondRow)
         val items = paneInsidePane.getItems.toSeq
         secondRow.items.addAll(new Label(items.mkString))
-        println(items)
-        //firstRow.getItems.addAll(new HBox(new Label(text = "cool")))
       }
     })
 

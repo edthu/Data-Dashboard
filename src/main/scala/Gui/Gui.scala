@@ -1,34 +1,38 @@
+package Gui
+
+import Charts.*
+import DataStorages.IntervalData
+import Gui.DataDashboard.stage
 import com.sun.javafx.scene.EventHandlerProperties
 import javafx.event.EventHandler
-import javafx.scene.control.Tooltip
-import javafx.scene.control.DatePicker
+import javafx.scene.control.{DateCell, DatePicker, Tooltip}
+import javafx.util.Callback
 import scalafx.Includes.*
 import scalafx.application.JFXApp3
+import scalafx.collections.ObservableBuffer
+import scalafx.event
+import scalafx.event.ActionEvent
 import scalafx.geometry.Orientation.{Horizontal, Vertical}
-import scalafx.scene.{Node, Scene}
-import scalafx.scene.chart.{Axis, CategoryAxis, LineChart, NumberAxis, ValueAxis, XYChart}
-import scalafx.scene.control.{Button, Label, Menu, MenuBar, MenuItem, SplitPane, TextArea, Tooltip}
+import scalafx.geometry.Pos.BaselineCenter
+import scalafx.scene.chart.*
+import scalafx.scene.control.*
+import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{BorderPane, HBox, StackPane, VBox}
 import scalafx.scene.paint.Color.*
 import scalafx.scene.shape.{Line, Rectangle}
 import scalafx.scene.text.{Font, TextFlow}
-import scalafx.Includes.*
-import scalafx.collections.ObservableBuffer
-import scalafx.event.ActionEvent
-import scalafx.geometry.Pos.BaselineCenter
-import scalafx.scene.input.MouseEvent
+import scalafx.scene.{Node, Scene}
 import scalafx.stage.{Modality, Stage}
 
-import java.time.{LocalDate, Month}
-import javafx.scene.control.{DateCell, DatePicker}
-import javafx.util.Callback
-import scalafx.event
-
-import java.time.format.DateTimeFormatter
 import java.awt.Color
-import java.time.LocalDate
-import scala.Predef.->
+import java.io.*
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Paths}
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, Month}
+import scala.io.Source
 import scala.language.postfixOps
+
 
 object DataDashboard extends JFXApp3 {
 
@@ -44,7 +48,9 @@ object DataDashboard extends JFXApp3 {
 
 
     // The root node of the GUI is a BorderPane. The top of this BorderPane is a
-    // MenuBar. The MenuBar has options to add new Nodes to the root.
+    // MenuBar. The MenuBar has options to add new ChartPanels and rows to the root.
+
+    // The layout of the gui is explained more throughly in the project document.
     val root = new BorderPane()
 
     // Top menu
@@ -58,34 +64,18 @@ object DataDashboard extends JFXApp3 {
     val newStatWindowMenu = new Menu("Add a stat window")
     val newBarChartMenu = new Menu("Add a bar chart")
     dashboardMenu.getItems.addAll(newRow, clearFirstRow, newChartMenu, newStatWindowMenu, newBarChartMenu)
-    // newChartMenu need another menu where the user can choose the row the chart is going to be added to
 
-
-
-    val optionMenu = new Menu("Options")
-
-    val saveMenu = new Menu("Save/Load")
-    val saveMenuItem = new MenuItem("Save the current layout")
-    val loadMenuItem = new MenuItem("Load a layout")
-    saveMenu.getItems.addAll(saveMenuItem, loadMenuItem)
-
-    // Add this if there is enough time
-    // val currency = new Menu("€")
 
     // All menus to the top of gui. This is not modified anywhere.
-    menuBar.getMenus.addAll(dashboardMenu, optionMenu, saveMenu)
+    menuBar.getMenus.addAll(dashboardMenu)
     root.setTop(menuBar)
 
-    // ChartView
-
-
-    // Different windows and rows
 
     // The initial layout of the gui. Initially there is only one row
-    val firstRow = new SplitPane:
+    val firstRow = new ChartSplitPane:
       orientation = Horizontal
 
-    val stackOfRows = new SplitPane:
+    val stackOfRows = new StackOfSplitPanes:
       orientation = Vertical
       items.addOne(firstRow)
 
@@ -99,11 +89,8 @@ object DataDashboard extends JFXApp3 {
 
 
     // New rows
-    def aRow = new SplitPane:
+    def aRow = new ChartSplitPane:
       orientation = Horizontal
-
-
-
 
 
     // Creates a chart object and place it into the panels that are going to be added to the gui
@@ -115,28 +102,30 @@ object DataDashboard extends JFXApp3 {
       val optionsMenu = new Menu("Options")
       chartMenu.getMenus.add(optionsMenu)
       basePanel.setTop(chartMenu)
-      // basePanel.setCenter(chartObject.chart)
 
 
       // Takes a new interval from the user and gets the appropriate data
       val changeInterval = new MenuItem("Change interval")
-      val showTooltips = new MenuItem("Show/hide tooltips")
-      optionsMenu.getItems.addAll(changeInterval, showTooltips)
+      val toggleTooltips = new MenuItem("Toggle tooltips")
+      optionsMenu.getItems.addAll(changeInterval, toggleTooltips)
 
       changeInterval.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
 
         // For that we create a new object that is shared between the new menu in a different window and this one
         def handle(actionEvent: javafx.event.ActionEvent) =
           // Create a new popup window where the user can choose a new interval to be displayed in the chart
+          // The values are stored in the only instance of IntervalData
           IntervalPopup().display()
 
+          // and accessed here to update the data
           val startTime: Long = IntervalData.getDateObject.getDates._1
           val endTime: Long = IntervalData.getDateObject.getDates._2
 
           chartObject.changeChartData(startTime, endTime)
       })
 
-      showTooltips.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      // Turn tooltips on or of
+      toggleTooltips.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
         def handle(actionEvent: javafx.event.ActionEvent) =
           if !chartObject.chart.createSymbols.apply() then
             chartObject.addTooltips()
@@ -146,9 +135,10 @@ object DataDashboard extends JFXApp3 {
 
       basePanel
 
+
     def createStatWindowPane(): StatWindowPane =
       val statWindowPane = new StackPane()
-      val statWindow = new StatWindow("USD")
+      val statWindow = new StatWindow()
       val basePanel = new StatWindowPane(statWindow)
       val statLabel = new Label(statWindow.text)
       statWindowPane.getChildren.addAll(statLabel)
@@ -162,8 +152,11 @@ object DataDashboard extends JFXApp3 {
 
       changeInterval.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
         def handle(actionEvent: javafx.event.ActionEvent) =
+          // Create a new popup window where the user can choose a new interval to be displayed in the chart
+          // The values are stored in the only instance of IntervalData
           IntervalPopup().display()
 
+          // and accessed here to update the data
           val startTime: Long = IntervalData.getDateObject.getDates._1
           val endTime: Long = IntervalData.getDateObject.getDates._2
 
@@ -171,8 +164,8 @@ object DataDashboard extends JFXApp3 {
           statLabel.text = statWindow.text
       })
 
-
       basePanel
+
 
     def createBarChartPane(): BarChartPane =
       val barChart = new MarketCapBarChart()
@@ -181,7 +174,7 @@ object DataDashboard extends JFXApp3 {
       val optionsMenu = new Menu("Options")
       menuBar.getMenus.add(optionsMenu)
       val changeDate = new MenuItem("Change Date")
-      val showTooltips = new MenuItem("Show/hide tooltips")
+      val showTooltips = new MenuItem("Toggle tooltips")
       optionsMenu.getItems.addAll(changeDate, showTooltips)
       basePanel.setTop(menuBar)
       basePanel.setCenter(barChart.chart)
@@ -198,6 +191,7 @@ object DataDashboard extends JFXApp3 {
 
       var tooltipsShown = false
 
+      // Turn tooltips on if they are off
       showTooltips.setOnAction(new EventHandler[javafx.event.ActionEvent](){
         def handle(actionEvent: javafx.event.ActionEvent) =
           if !tooltipsShown then
@@ -206,39 +200,32 @@ object DataDashboard extends JFXApp3 {
 
       basePanel
 
-    // Adds a menuItem to a menu and makes it so that pressing that menu item adds a given chart to a given row in the
-    // GUI.
-    
-    // always adds the same chart to the same row. Need a way to create a new instance of this chart to add to the row.
-    // Adding the same istance just moves the chart from the initial location to the new window. A single row can only
-    // have one instance at all times.
 
-    // TODO: handle all different charts
-    // chart function returns a custom class. Match and add the chart to the scene?
-    def addButton(row: SplitPane, rowNum: Int, chartFunction: () => ChartPanel, menu: Menu) =
+
+    // Adds a button to a given menu. This button adds a given chart to a given row.
+    // This function is called for each chart type each time a new row is added
+    def addButton(row: ChartSplitPane, rowNum: Int, chartFunction: () => ChartPanel, menu: Menu) =
       val menuItem = new MenuItem(s"Add to row $rowNum")
       menuItem.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
         def handle(actionEvent: javafx.event.ActionEvent) =
           val chart = chartFunction.apply()
-          row.getItems.addAll(chart)
-          /*
-          chart match
-            case c: ChartPane => c.getChartObject.addTooltips()
-            case b: BarChartPane => b.
-            case s: StatWindowPane => */
+          row.items.addAll(chart)
       })
       menu.getItems.addAll(menuItem)
 
-    // Add buttons to add charts to the first row
+    // Buttons that add charts to the first row
     addButton(firstRow, 1, createLineChartPane, newChartMenu)
     addButton(firstRow, 1, createStatWindowPane, newStatWindowMenu)
     addButton(firstRow, 1, createBarChartPane, newBarChartMenu)
 
-    // Used when a row is deleted. Removes the option in the menus to add things to the deleted row
+    // Used when a row is deleted. Removes the option in the menus to add charts to the deleted row
     def deleteButton(rowNum: Int) =
       newChartMenu.items.remove(rowNum - 1)
       newStatWindowMenu.items.remove(rowNum - 1)
+      newBarChartMenu.items.remove(rowNum - 1)
 
+    // Adds the option to delete a row if there are more than two of them
+    // When only one row remains removes that option
     def deleteRowButtonCheck() =
       if stackOfRows.items.length == 1 then
         val deleteRow = new MenuItem("Delete a row")
@@ -246,21 +233,21 @@ object DataDashboard extends JFXApp3 {
         deleteRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
           def handle(actionEvent: javafx.event.ActionEvent) =
             deleteButton(stackOfRows.items.length)
-            stackOfRows.getItems.remove(stackOfRows.items.length - 1)
+            stackOfRows.items.remove(stackOfRows.items.length - 1)
             if stackOfRows.items.length == 1 then
               dashboardMenu.items.remove(dashboardMenu.items.length - 1)
         })
 
 
 
-    // Actions for menuItems
+    // Creates a new row. Adds a new menuItem for the menus used to add new charts
     newRow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
       def handle(actionEvent: javafx.event.ActionEvent) =
         deleteRowButtonCheck()
         // A new horizontal SplitPane
         val newRowToBeAdded = aRow
-        stackOfRows.getItems.addAll(newRowToBeAdded)
-        val indexOfTheNewRow = stackOfRows.getItems.length
+        stackOfRows.items.addAll(newRowToBeAdded)
+        val indexOfTheNewRow = stackOfRows.items.length
         // Add a new MenuItem to the other menus where you add other types of charts
         addButton(newRowToBeAdded, indexOfTheNewRow, createLineChartPane, newChartMenu)
         addButton(newRowToBeAdded, indexOfTheNewRow, createStatWindowPane, newStatWindowMenu)
@@ -272,3 +259,54 @@ object DataDashboard extends JFXApp3 {
     stage.scene = scene
 }
 
+
+
+
+/*
+    saveMenuItem.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
+      def handle(event: javafx.event.ActionEvent) =
+
+        // SaveNamingPopUp().display()
+        // savefile: "name" -> ujson.Arr[String, Value] Value is an array (statWindow only takes one date)
+
+        // ujson.Arr[ujson.Arr[ujson.Obj]]
+        var windowArray = ujson.Arr()
+
+        //Files.write(Paths.get("/src/main/scala/savefiles.json"), "uhahahaha".getBytes(StandardCharsets.UTF_8))
+        //new PrintWriter("savefiles.json") { write("file contents"); close() }
+
+        var rowNumber = 0
+
+        scala.Predef.println(stackOfRows.getItems)
+        scala.Predef.println(stackOfRows.items)
+        for
+          row <- stackOfRows.getItems
+        do
+          rowNumber += 1
+          var rowArray = ujson.Arr()
+          for pane <- row.getItems do
+            var jsonString = ""
+            val separator = if jsonString.isBlank then "" else ", "
+            // Adds the type of Pane and its current time values into the json Array
+            pane match
+              case c: Charts.ChartPane =>
+                val startTime = c.getChartObject.getStartTime
+                val endTime = c.getChartObject.getEndTime
+                val saveObject = ujson.Obj(("type", "Charts.ChartPane"), ("row", rowNumber), ("start_time", startTime), ("end_time", endTime))
+                rowArray = ujson.Arr(rowArray.value :+ saveObject)
+                // jsonString = jsonString + s"""$separator[Charts.ChartPane, ${startTime.toString}, ${endTime.toString}]"""
+              case s: Charts.StatWindowPane =>
+                val startTime = s.getStatWindow.startDate
+                val endTime = s.getStatWindow.endDate
+                val saveObject = ujson.Obj(("type", "Charts.StatWindowPane"), ("row", rowNumber), ("start_time", startTime), ("end_time", endTime))
+                rowArray = ujson.Arr(rowArray.value :+ saveObject)
+                //jsonString = jsonString + s"""$separator[Charts.StatWindowPane, $startTime, $endTime]"""
+              case b: Charts.BarChartPane =>
+                val date = b.getChartObject.getDate
+                val saveObject = ujson.Obj(("type", "Charts.BarChartPane"), ("row", rowNumber), ("date", date))
+                rowArray = ujson.Arr(rowArray.value :+ saveObject)
+                // jsonString = jsonString + s"""$separator["Charts.BarChartPane", $date]"""
+          windowArray = ujson.Arr(windowArray.value :+ rowArray)
+
+    })
+    */
