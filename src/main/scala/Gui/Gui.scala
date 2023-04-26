@@ -174,7 +174,7 @@ object DataDashboard extends JFXApp3 {
       val optionsMenu = new Menu("Options")
       menuBar.getMenus.add(optionsMenu)
       val changeDate = new MenuItem("Change Date")
-      val showTooltips = new MenuItem("Toggle tooltips")
+      val showTooltips = new MenuItem("Show tooltips")
       optionsMenu.getItems.addAll(changeDate, showTooltips)
       basePanel.setTop(menuBar)
       basePanel.setCenter(barChart.chart)

@@ -1,16 +1,22 @@
 package TimeAndData
 
 import TimeAndData.TimeConversions
+import requests.{InvalidCertException, RequestFailedException, Response, TimeoutException, UnknownHostException}
 
 import java.time.*
 import java.util.Date
 import scala.collection.mutable.ArrayBuffer
 
 // A class for making http-requests and changing the data into a format so that it can be used in the GUI components
-class requestData(private var api: String):
+class RequestData(private var api: String):
   // Makes a http request with the given url
-  def request = requests.get(api)
-
+  def request: Response =
+    try
+      requests.get(api)
+    catch
+      case _: TimeoutException => throw TimeoutException(api, 10, 10)
+      case _: RequestFailedException => throw RequestFailedException(requests.get(api))
+      case _: Throwable => throw new Exception("Unknown exception")
 
   private var currentReq = request
   def updateApi(newApi: String) = 

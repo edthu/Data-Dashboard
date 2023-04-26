@@ -1,6 +1,6 @@
 package Charts
 
-import TimeAndData.{TimeConversions, requestData}
+import TimeAndData.{TimeConversions, RequestData}
 
 // A class that contains data for the Stat card
 
@@ -11,11 +11,11 @@ class StatWindow():
 
 
   // This request returns some miscellaneous data
-  private val currentData = requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
-  private def JSONobject = currentData.json(0)
+  private val currentData = RequestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
+  private def JSONobject: ujson.Value.Value = currentData.json(0)
 
   private val intervalRequest =
-    requestData(s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=$startTime&to=$endTime")
+    RequestData(s"https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=$startTime&to=$endTime")
 
 
   // Current statistics
@@ -26,25 +26,25 @@ class StatWindow():
 
 
   // Statistics based on a chosen interval
-  def highestAndLowestPrice =
+  def highestAndLowestPrice: String =
     val highest = intervalRequest.timedata.maxBy(_._2)._2.toInt
     val lowest = intervalRequest.timedata.minBy(_._2)._2.toInt
     s"Lowest price: $lowest\n" +
-    s"Highest price: $highest"
+      s"Highest price: $highest"
 
-  private def mostAndLeastVolume =
+  private def mostAndLeastVolume: (String, String) =
     val mostVolume = intervalRequest.volumedata.maxBy(_._2)
     val leastVolume = intervalRequest.volumedata.minBy(_._2)
-    val mostVolString = s"$$${mostVolume._1}: ${mostVolume._2} million"
-    val leastVolString = s"$$${leastVolume._1}: ${leastVolume._2} million"
+    val mostVolString = s"${mostVolume._1}: ${mostVolume._2} million"
+    val leastVolString = s"${leastVolume._1}: ${leastVolume._2} million"
     (mostVolString, leastVolString)
 
 
   // For changing the interval and making a new request
-  def startDate = TimeConversions.unixTimestampToddMMyyyy(startTime*1000)
+  def startDate: String = TimeConversions.unixTimestampToddMMyyyy(startTime*1000)
 
-  def endDate = TimeConversions.unixTimestampToddMMyyyy(endTime*1000)
-  
+  def endDate: String = TimeConversions.unixTimestampToddMMyyyy(endTime*1000)
+
   // The statistics that are shown in the window
   def text =
     s"Current Ethereum statistics\n" +
@@ -54,8 +54,8 @@ class StatWindow():
       s"Statistics between\n" +
     s"$startDate - " +
     s"$endDate\n" +
-      s"Most volume: $$${mostAndLeastVolume._1}\n" +
-      s"Least volume: $$${mostAndLeastVolume._2}"
+      s"Most volume: $$ ${mostAndLeastVolume._1}\n" +
+      s"Least volume: $$ ${mostAndLeastVolume._2}"
 
   // Makes a new call to the api a and updates the interval. This change is updated to the chart by changing the text
   // of the label by calling the text method again

@@ -2,7 +2,7 @@ package TestClasses
 
 import Charts.StatWindow
 import TestClasses.GuiTest.stage
-import TimeAndData.requestData
+import TimeAndData.RequestData
 import com.sun.javafx.scene.EventHandlerProperties
 import javafx.event.EventHandler
 import javafx.scene.control.{DateCell, DatePicker}
@@ -47,7 +47,7 @@ object GuiTest extends JFXApp3 {
     and set the current window scene.
     */
 
-    val apiData = requestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
+    val apiData = RequestData("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ethereum")
 
     val root = new BorderPane()
 
@@ -147,7 +147,7 @@ object GuiTest extends JFXApp3 {
     val toChartData = (xy: (String, Int)) => XYChart.Data[String, Number](xy._1, xy._2)
 
     // val values = Seq((1.0, 1.0), (2.0, 3.0), (7.0, 4.0), (10.0, 5.0), (20.0, 6.0)).map(toChartData(_))
-    val request = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1523229288&to=1680995696")
+    val request = RequestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1523229288&to=1680995696")
     var newValues = request.formatData(request.timedata, 1680995696 - 1523229288).map(toChartData(_)).toSeq
 
     val dataSeries = new XYChart.Series[String, Number]:
@@ -167,7 +167,7 @@ object GuiTest extends JFXApp3 {
     paneForChart.setTop(secondMenuBar)
     paneForChart.setCenter(stackPane)
     // 2016 1460582496   2018 1586387688
-    val reqq = requestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1460582496&to=1617923688")
+    val reqq = RequestData("https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=1460582496&to=1617923688")
 
     newWindow.setOnAction(new EventHandler[javafx.event.ActionEvent]() {
       def handle(actionEvent: javafx.event.ActionEvent) = {
